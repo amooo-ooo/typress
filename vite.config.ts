@@ -7,7 +7,6 @@ import {
   typstHmr,
   copyTypFiles,
   generateSitemap,
-  lit,
 } from "./scripts/plugins/vite";
 
 const CACHE_DIR = resolve(process.cwd(), ".typress");
@@ -31,7 +30,6 @@ export default defineConfig(({ command }) => {
       typressRouter(),
       typstHmr(),
       copyTypFiles(),
-      lit(),
       generateSitemap({ siteUrl: SITE_URL }),
       critical({
         criticalUrl: `${DIST_DIR}/`,

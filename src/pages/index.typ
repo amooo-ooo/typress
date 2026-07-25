@@ -8,7 +8,6 @@
 )
 
 #let typress-counter = component("/src/components/counter.ts", "typress-counter")
-#let lit-counter = component("/src/components/lit-counter.ts", "lit-counter")
 
 = Get started
 
@@ -25,8 +24,4 @@ Edit `src/pages/index.typ` and save to test HMR. This page uses the `default` la
 Here is a functional counter:
 
 #typress-counter(class: "btn counter")[Count is 0]
-
-Here is a Lit counter:
-
-#lit-counter(class: "btn counter")[Count is 0]
 

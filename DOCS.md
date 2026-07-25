@@ -293,10 +293,18 @@ Use the `component` macro from `src/components/typress.typ` to load and render T
 
 #### Optional Lit Support
 
-If you prefer using [Lit](https://lit.dev/) rather than vanilla Web Components, Typress includes an optional `lit()` Vite plugin. When configured, you can author Lit components and import them using the exact same syntax:
+If you want to use Lit instead of vanilla Web Components:
 
+1. Install `lit`: `bun add lit`
+2. Add the `lit()` plugin in your `vite.config.ts`:
+```ts
+import { lit } from "./scripts/plugins/vite";
+// ...
+plugins: [..., lit()]
+```
+3. Author Lit components and import them using the exact same `component()` macro:
 ```typst
-#let lit-counter = component("/src/components/lit-counter.ts", "lit-counter")
+#let my-component = component("/src/components/my-component.ts", "my-component")
 ```
 
 ### Hyperscript Engine (`h`)
