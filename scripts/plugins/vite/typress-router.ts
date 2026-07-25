@@ -43,8 +43,9 @@ export function typressRouter(): Plugin {
               res.setHeader("X-Content-Type-Options", "nosniff");
               res.end(data);
               return;
-            } catch (e: any) {
-              if (e.code !== "ENOENT") {
+            } catch (e: unknown) {
+              const err = e as NodeJS.ErrnoException;
+              if (err.code !== "ENOENT") {
                 console.error("[typress:router] Error reading file:", e);
               }
             }

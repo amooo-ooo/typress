@@ -16,5 +16,8 @@
     "preview": "vite preview",
     "deploy": "wrangler pages deploy dist"
   },
-  "type": "module"
+  "type": "module",
+  "dependencies": {
+    "lit": "^3.3.3"
+  }
 }

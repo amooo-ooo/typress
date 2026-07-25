@@ -55,6 +55,14 @@ The `component` macro in `src/components/typress.typ` allows injecting TypeScrip
 #typress-counter(class: "btn")[Count is 0]
 ```
 
+#### Plugins & Extensions
+
+You can extend Typress with optional Vite plugins, such as the included `lit` plugin for building components with Lit:
+
+```typst
+#let lit-counter = component("/src/components/lit-counter.ts", "lit-counter")
+```
+
 ### Hyperscript API
 
 A custom hyperscript module (`h`) provides an API for emitting HTML tags inside Typst when `is_html=true`.

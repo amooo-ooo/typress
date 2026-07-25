@@ -281,7 +281,7 @@ Typress provides two ways to add client-side interactivity to Typst pages: TypeS
 
 ### TypeScript Web Components (`component`)
 
-Use the `component` macro from `src/components/typress.typ` to load and render TypeScript Web Components.
+Use the `component` macro from `src/components/typress.typ` to load and render TypeScript Web Components:
 
 ```typst
 #import "/src/components/typress.typ": component
@@ -289,6 +289,14 @@ Use the `component` macro from `src/components/typress.typ` to load and render T
 #let typress-counter = component("/src/components/counter.ts", "typress-counter")
 
 #typress-counter(class: "btn counter")[Count is 0]
+```
+
+#### Optional Lit Support
+
+If you prefer using [Lit](https://lit.dev/) rather than vanilla Web Components, Typress includes an optional `lit()` Vite plugin. When configured, you can author Lit components and import them using the exact same syntax:
+
+```typst
+#let lit-counter = component("/src/components/lit-counter.ts", "lit-counter")
 ```
 
 ### Hyperscript Engine (`h`)
@@ -335,3 +343,13 @@ The client router in `scripts/router/index.ts` enhances page navigation:
 ### Serving Raw Typst Source
 
 Typress serves raw `.typ` source files directly when requested with a `.typ` extension or via raw source URL endpoints.
+
+### Vite Plugins & Extensibility (`scripts/plugins/vite/`)
+
+Vite plugins are located in the `scripts/plugins/vite/` directory and exported via a single barrel file:
+
+- **`typressRouter`**: Middleware resolving clean extensionless routes and serving raw `.typ` source files.
+- **`typstHmr`**: Triggers page reloads on Typst/layout source updates and handles incremental builds.
+- **`copyTypFiles`**: Production asset exporter for raw page source files.
+- **`generateSitemap`**: Automatically constructs a `sitemap.xml` listing all compiled pages.
+- **`lit`**: Optional plugin configuring esbuild decorator transforms dynamically, enabling optional Lit component support without global tsconfig pollution.
