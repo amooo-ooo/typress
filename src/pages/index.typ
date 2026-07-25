@@ -1,6 +1,11 @@
 #import "/src/components/typress.typ": component, meta
 
-#show: meta.with(title: "Minimal Typress Home", layout: "default")
+#show: meta.with(
+  title: "Minimal Typress Home",
+  description: "A high-performance Typst-powered static site generator starter template.",
+  keywords: ("typst", "ssg", "static-site-generator", "vite", "typress"),
+  layout: "default"
+)
 
 #let typress-counter = component("/src/components/counter.ts", "typress-counter")
 

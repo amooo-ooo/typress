@@ -1,5 +1,11 @@
 #import "/src/components/typress.typ": h, component, meta
-#show: meta.with(title: "Typst Cheatsheet", layout: "default")
+#show: meta.with(
+  title: "Typst Cheatsheet",
+  description: "A comprehensive cheatsheet covering Typst syntax, text styling, math, data loading, and interactive web components.",
+  keywords: ("typst", "cheatsheet", "syntax", "math", "web-components"),
+  section: "Documentation",
+  layout: "default"
+)
 
 #let example(code, scope: (:)) = {
   code
