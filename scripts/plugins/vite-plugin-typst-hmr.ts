@@ -19,7 +19,7 @@ export interface TypstHmrOptions {
 export function typstHmr(options: TypstHmrOptions = {}): Plugin {
   const command = options.buildCommand ?? "bun scripts/ssg.ts";
   const watchDir = options.watchDir ?? resolve(process.cwd(), "src");
-  const prefix = "\x1b[35mtypx\x1b[0m";
+  const prefix = "\x1b[35mtypress\x1b[0m";
 
   async function runSSG(file?: string) {
     if (file) console.log(`${prefix} hmr update ${file}`);
@@ -42,7 +42,7 @@ export function typstHmr(options: TypstHmrOptions = {}): Plugin {
   }
 
   return {
-    name: "typx:hmr",
+    name: "typress:hmr",
     enforce: "pre",
 
     configureServer(server) {
@@ -54,12 +54,12 @@ export function typstHmr(options: TypstHmrOptions = {}): Plugin {
     },
 
     async handleHotUpdate({ file, server }) {
-      // Ignore changes inside the intermediate .typx cache.
-      if (file.includes(".typx")) return [];
+      // Ignore changes inside the intermediate .typress cache.
+      if (file.includes(".typress")) return [];
       if (!isTypstSource(file)) return;
 
       await runSSG(file);
-      server.ws.send({ type: "custom", event: "typx:hmr" });
+      server.ws.send({ type: "custom", event: "typress:hmr" });
       return [];
     },
   };

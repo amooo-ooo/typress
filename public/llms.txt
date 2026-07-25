@@ -1,10 +1,10 @@
-# Typx SSG Starter
+# Typress SSG Starter
 
 > A minimal Typst-powered static site generator starter template.
 
 ## Important Links
 
-- [GitHub Repository](https://github.com/amooo-ooo/typx-ssg-starter): Source code repository
+- [GitHub Repository](https://github.com/amooo-ooo/typress): Source code repository
 - [Home](/index.typ): Landing page
 - [Cheatsheet](/cheatsheet.typ): Typst syntax cheatsheet
 - [Blog](/blog/building-typst-ssg.typ): Blog post on building the SSG

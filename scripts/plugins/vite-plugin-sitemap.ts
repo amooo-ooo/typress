@@ -15,10 +15,10 @@ export interface SitemapOptions {
  */
 export function generateSitemap(options: SitemapOptions): Plugin {
   const { siteUrl } = options;
-  const cacheDir = options.cacheDir ?? resolve(process.cwd(), ".typx");
+  const cacheDir = options.cacheDir ?? resolve(process.cwd(), ".typress");
 
   return {
-    name: "typx:sitemap",
+    name: "typress:sitemap",
     apply: "build",
 
     generateBundle() {

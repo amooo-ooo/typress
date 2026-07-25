@@ -1,4 +1,4 @@
-// Typx Hyperscript Component. Provides clean, composable DX for HTML elements.
+// Typress Hyperscript Component. Provides clean, composable DX for HTML elements.
 
 #let parse-selector(s) = {
   let (tag, id, classes) = ("div", none, ())

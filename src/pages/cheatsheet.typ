@@ -1,4 +1,4 @@
-#import "/src/components/typx.typ": h, component, meta
+#import "/src/components/typress.typ": h, component, meta
 #show: meta.with(title: "Typst Cheatsheet", layout: "default")
 
 #let example(code, scope: (:)) = {
@@ -217,8 +217,8 @@ You can use the `#h("script")` hyperscript component to easily attach inline Jav
 Alternatively, you can load a Web Component using the `component` macro:
 
 #example(scope: (component: component), ```typst
-#let typx-counter = component("/src/components/counter.ts", "typx-counter")
-#typx-counter(class: "btn counter")[Count is 0]
+#let typress-counter = component("/src/components/counter.ts", "typress-counter")
+#typress-counter(class: "btn counter")[Count is 0]
 ```)
 
 #divider()

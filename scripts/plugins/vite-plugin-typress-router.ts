@@ -3,15 +3,15 @@ import { resolve } from "node:path";
 import type { Plugin } from "vite";
 
 /**
- * Dev-server middleware for the Typx SSG.
+ * Dev-server middleware for the Typress SSG.
  *
  * - Serves raw .typ files with correct headers and path-traversal protection.
  * - Rewrites extensionless HTML requests so Vite can resolve them
  *   (e.g. /cheatsheet -> /cheatsheet.html).
  */
-export function typxRouter(): Plugin {
+export function typressRouter(): Plugin {
   return {
-    name: "typx:router",
+    name: "typress:router",
 
     configureServer(server) {
       server.middlewares.use(async (req, res, next) => {
@@ -45,7 +45,7 @@ export function typxRouter(): Plugin {
               return;
             } catch (e: any) {
               if (e.code !== "ENOENT") {
-                console.error("[typx:router] Error reading file:", e);
+                console.error("[typress:router] Error reading file:", e);
               }
             }
           }

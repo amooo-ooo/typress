@@ -1,6 +1,6 @@
-# typx-ssg-starter
+# typress
 
-typx-ssg-starter is a minimal static site generator that combines Typst for document authoring with Vite and Bun for web development. Author pages in Typst with TypeScript Web Components, and wrap the output in standard HTML layouts.
+typress is a minimal static site generator template that combines Typst for document authoring with Vite and Bun for web development. Author pages in Typst with TypeScript Web Components, and wrap the output in standard HTML layouts.
 
 ## Features
 
@@ -18,33 +18,33 @@ typx-ssg-starter is a minimal static site generator that combines Typst for docu
 Pages in `src/pages/` are compiled into HTML and mapped to their corresponding URL paths. Typst HTML output goes into a `<slot />` within HTML shell files in `src/layouts/`. The layout is specified via the `meta` configuration macro, such as:
 
 ```typst
-#import "/src/components/typx.typ": meta
+#import "/src/components/typress.typ": meta
 #show: meta.with(title: "My Page", layout: "default")
 ```
 
 ### Static Site Generation
-The `scripts/ssg.ts` engine uses Bun to compile via `typst compile --format html`. The output goes to the `.typx/` cache directory.
+The `scripts/ssg.ts` engine uses Bun to compile via `typst compile --format html`. The output goes to the `.typress/` cache directory.
 
 ### Web Components
-The `component` macro in `src/components/typx.typ` allows injecting TypeScript Web Components directly into Typst files, mapping them to custom HTML elements.
+The `component` macro in `src/components/typress.typ` allows injecting TypeScript Web Components directly into Typst files, mapping them to custom HTML elements.
 
 ```typst
-#import "/src/components/typx.typ": component
-#let typx-counter = component("/src/components/counter.ts", "typx-counter")
+#import "/src/components/typress.typ": component
+#let typress-counter = component("/src/components/counter.ts", "typress-counter")
 
-#typx-counter(class: "btn")[Count is 0]
+#typress-counter(class: "btn")[Count is 0]
 ```
 
 ### Hyperscript API
 A custom hyperscript module (`h`) provides an API for emitting HTML tags inside Typst when `is_html=true`.
 
 ```typst
-#import "/src/components/typx.typ": h
+#import "/src/components/typress.typ": h
 #h("div.wrapper")[Hello, World!]
 ```
 
 ### Dev Server & Routing
-Vite serves from the `.typx` directory. A custom plugin handles clean URLs and serving raw `.typ` source files as plain text, while an HMR watcher rebuilds Typst pages on change. The client-side router in `scripts/router/index.ts` provides SPA navigation.
+Vite serves from the `.typress` directory. A custom plugin handles clean URLs and serving raw `.typ` source files as plain text, while an HMR watcher rebuilds Typst pages on change. The client-side router in `scripts/router/index.ts` provides SPA navigation.
 
 ## Usage
 

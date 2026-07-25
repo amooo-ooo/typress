@@ -16,7 +16,7 @@ export function copyTypFiles(options: CopyTypOptions = {}): Plugin {
   const pagesDir = options.pagesDir ?? resolve(process.cwd(), "src/pages");
 
   return {
-    name: "typx:copy-typ",
+    name: "typress:copy-typ",
     apply: "build",
 
     async generateBundle() {

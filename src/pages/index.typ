@@ -1,8 +1,8 @@
-#import "/src/components/typx.typ": component, meta
+#import "/src/components/typress.typ": component, meta
 
-#show: meta.with(title: "Minimal Typx Home", layout: "default")
+#show: meta.with(title: "Minimal Typress Home", layout: "default")
 
-#let typx-counter = component("/src/components/counter.ts", "typx-counter")
+#let typress-counter = component("/src/components/counter.ts", "typress-counter")
 
 = Get started
 
@@ -18,4 +18,4 @@ Edit `src/pages/index.typ` and save to test HMR. This page uses the `default` la
 
 Here is a functional counter:
 
-#typx-counter(class: "btn counter")[Count is 0] 
+#typress-counter(class: "btn counter")[Count is 0] 

@@ -2,16 +2,16 @@ import { defineConfig } from "vite";
 import { globSync } from "glob";
 import { resolve } from "node:path";
 import critical from "rollup-plugin-critical";
-import { typxRouter } from "./scripts/plugins/vite-plugin-typx-router";
+import { typressRouter } from "./scripts/plugins/vite-plugin-typress-router";
 import { typstHmr } from "./scripts/plugins/vite-plugin-typst-hmr";
 import { copyTypFiles } from "./scripts/plugins/vite-plugin-copy-typ";
 import { generateSitemap } from "./scripts/plugins/vite-plugin-sitemap";
 
-const CACHE_DIR = resolve(process.cwd(), ".typx");
+const CACHE_DIR = resolve(process.cwd(), ".typress");
 const DIST_DIR = resolve(process.cwd(), "dist");
-const SITE_URL = "https://typx-ssg-starter.pages.dev";
+const SITE_URL = "https://typress-ssg-starter.pages.dev";
 
-// Discover compiled HTML pages from the .typx build cache.
+// Discover compiled HTML pages from the .typress build cache.
 // The cache persists between runs, typstHmr's buildStart hook keeps it fresh.
 const discoverPages = () =>
   globSync("**/*.html", { cwd: CACHE_DIR, ignore: ["_temp/**"] });
@@ -20,12 +20,12 @@ export default defineConfig(({ command }) => {
   const pages = command === "build" ? discoverPages() : [];
 
   return {
-    root: ".typx",
+    root: ".typress",
     base: "./",
     publicDir: resolve(process.cwd(), "public"),
 
     plugins: [
-      typxRouter(),
+      typressRouter(),
       typstHmr(),
       copyTypFiles(),
       generateSitemap({ siteUrl: SITE_URL }),
@@ -57,7 +57,7 @@ export default defineConfig(({ command }) => {
 
     server: {
       watch: {
-        ignored: (p) => p.includes(".typx") && !p.includes("node_modules"),
+        ignored: (p) => p.includes(".typress") && !p.includes("node_modules"),
       },
     },
 

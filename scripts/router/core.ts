@@ -52,7 +52,7 @@ class LruCache<K, V> {
 /**
  * Core SPA router engine.
  */
-export class TypxRouter {
+export class TypressRouter {
   private readonly fetchCache: LruCache<string, Promise<string>>;
   private readonly pageCache: LruCache<string, HTMLElement>;
   private container: HTMLElement;
@@ -229,7 +229,7 @@ export class TypxRouter {
   private registerHMR(): void {
     if (!import.meta.hot) return;
 
-    import.meta.hot.on("typx:hmr", () => {
+    import.meta.hot.on("typress:hmr", () => {
       this.fetchCache.clear();
       this.pageCache.clear();
       this.container.innerHTML = "";

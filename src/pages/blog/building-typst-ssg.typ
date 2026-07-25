@@ -1,5 +1,5 @@
-#import "/src/components/typx.typ": meta
-#show: meta.with(title: "Minimal Typx Blog", layout: "blog")
+#import "/src/components/typress.typ": meta
+#show: meta.with(title: "Minimal Typress Blog", layout: "blog")
 
 = Building a Typst SSG
 *By Amor, July 2026*

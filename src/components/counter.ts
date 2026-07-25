@@ -1,4 +1,4 @@
-export class TypxCounter extends HTMLElement {
+export class TypressCounter extends HTMLElement {
   private count = 0;
 
   constructor() {
@@ -25,6 +25,6 @@ export class TypxCounter extends HTMLElement {
   }
 }
 
-if (!customElements.get("typx-counter")) {
-  customElements.define("typx-counter", TypxCounter);
+if (!customElements.get("typress-counter")) {
+  customElements.define("typress-counter", TypressCounter);
 }

@@ -71,7 +71,7 @@ async function processTypstFile(
 ): Promise<boolean> {
   const srcPath = join(pagesDir, file);
   const outRelPath = determineOutputPath(file);
-  const finalOutPath = join(process.cwd(), ".typx", outRelPath);
+  const finalOutPath = join(process.cwd(), ".typress", outRelPath);
 
   try {
     const srcStat = await stat(srcPath);
@@ -166,20 +166,20 @@ async function buildSSG(): Promise<void> {
     return;
   }
 
-  const tempDir = join(cwd, ".typx", "_temp");
+  const tempDir = join(cwd, ".typress", "_temp");
   await mkdir(tempDir, { recursive: true });
 
   const maxSharedMtime = await getMaxSharedMtime(cwd);
 
-  // Clean up stale HTML files in .typx (orphaned files that no longer have a .typ source)
+  // Clean up stale HTML files in .typress (orphaned files that no longer have a .typ source)
   const existingHtmlFiles = await glob("**/*.html", {
-    cwd: join(cwd, ".typx"),
+    cwd: join(cwd, ".typress"),
     ignore: "_temp/**",
   });
   const expectedHtmlFiles = new Set(typFiles.map(determineOutputPath));
   for (const htmlFile of existingHtmlFiles) {
     if (!expectedHtmlFiles.has(htmlFile)) {
-      await rm(join(cwd, ".typx", htmlFile)).catch(() => {});
+      await rm(join(cwd, ".typress", htmlFile)).catch(() => {});
     }
   }
 
@@ -207,7 +207,7 @@ async function buildSSG(): Promise<void> {
         ? `, skipped ${skippedCount === 1 ? "1 file" : `${skippedCount} files`}`
         : "";
     console.log(
-      `\x1b[32m✓\x1b[0m \x1b[35mtypx\x1b[0m built ${builtText}${skippedText} in ${timeMs}ms`,
+      `\x1b[32m✓\x1b[0m \x1b[35mtypress\x1b[0m built ${builtText}${skippedText} in ${timeMs}ms`,
     );
   }
 }
