@@ -1,26 +1,27 @@
 import type { Plugin } from "vite";
 
+/**
+ * Configuration options for the Lit Vite plugin.
+ */
 export interface LitPluginOptions {
-  /** Glob patterns for files to apply decorator transforms to. */
-  include?: string[];
+  /** Optional glob patterns for files to apply decorator transforms to. */
+  readonly include?: string[];
 }
 
 /**
- * Optional Vite plugin that enables Lit web component support.
- * Configures esbuild decorator handling so Lit's @customElement
- * and @property decorators work without modifying tsconfig.json.
+ * Configures esbuild decorator transforms for Lit web components.
  *
- * Usage in vite.config.ts:
- *   import { lit } from "./scripts/plugins/vite";
- *   plugins: [lit()]
+ * @param options Optional plugin configuration.
+ * @returns Configured Vite plugin instance.
  */
-export function lit(_options: LitPluginOptions = {}): Plugin {
+export function lit(options: LitPluginOptions = {}): Plugin {
   return {
     name: "typress:lit",
 
     config() {
       return {
         esbuild: {
+          ...(options.include ? { include: options.include } : {}),
           tsconfigRaw: {
             compilerOptions: {
               experimentalDecorators: true,

@@ -1,16 +1,20 @@
 import { resolve } from "node:path";
-import { readFile } from "node:fs/promises";
-import { glob } from "glob";
+import { readdir, readFile } from "node:fs/promises";
 import type { Plugin } from "vite";
 
+/**
+ * Configuration options for the `copyTypFiles` Vite plugin.
+ */
 export interface CopyTypOptions {
-  /** Directory containing .typ source files. */
-  pagesDir?: string;
+  /** Directory containing `.typ` source files. Defaults to `src/pages`. */
+  readonly pagesDir?: string;
 }
 
 /**
- * Copies raw .typ source files into the build output so they are
- * accessible at their original paths (e.g. /index.typ).
+ * Copies raw `.typ` source files into the production build output so they remain accessible at their route paths.
+ *
+ * @param options Optional plugin configuration.
+ * @returns Configured Vite plugin instance.
  */
 export function copyTypFiles(options: CopyTypOptions = {}): Plugin {
   const pagesDir = options.pagesDir ?? resolve(process.cwd(), "src/pages");
@@ -20,7 +24,8 @@ export function copyTypFiles(options: CopyTypOptions = {}): Plugin {
     apply: "build",
 
     async generateBundle() {
-      const files = await glob("**/*.typ", { cwd: pagesDir });
+      const entries = await readdir(pagesDir, { recursive: true });
+      const files = entries.filter((file) => file.endsWith(".typ")).sort();
 
       await Promise.all(
         files.map(async (file) => {

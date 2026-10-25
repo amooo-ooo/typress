@@ -1,13 +1,13 @@
 # Typress Documentation
 
-Typress is a static site generator template that combines Typst for document authoring with Vite and Bun for web development. This document provides a comprehensive reference for authoring pages, defining metadata, using Web Components, customizing layouts, and understanding the SSG architecture.
+Typress is a static site generator template that combines Typst for document authoring with Vite and Bun for web development. This document provides a comprehensive reference for authoring pages, defining metadata, using Web Components, customising layouts, and understanding the SSG architecture.
 
 ## Overview
 
 Typress compiles Typst files located in `src/pages/` into HTML documents, injecting the rendered content into HTML layout templates defined in `src/layouts/`.
 
 - **Typst Authoring**: Write pages in Typst syntax.
-- **HTML Layouts**: Enclose compiled pages in reusable HTML templates via `<slot />`.
+- **HTML Layouts**: Enclose compiled pages in reusable HTML templates via W3C `<slot>` elements (default and named slots).
 - **Comprehensive Metadata**: Define standard SEO, Open Graph, Twitter Cards, JSON-LD, and custom head tags per page.
 - **Web Components**: Embed TypeScript Web Components into Typst documents.
 - **Hyperscript API**: Emit HTML elements inside Typst using the `h()` macro.
@@ -17,10 +17,9 @@ Typress compiles Typst files located in `src/pages/` into HTML documents, inject
 
 ### Prerequisites
 
-Ensure Bun and Typst are installed and available on your PATH:
+Ensure Bun is installed on your machine (Typst compilation runs in-process via `@myriaddreamin/typst-ts-node-compiler`, requiring no external `typst` CLI installation):
 
 - [Bun](https://bun.sh)
-- [Typst](https://typst.app)
 
 ### Project Commands
 
@@ -36,7 +35,7 @@ Start the development server with Hot Module Replacement (HMR):
 bun run dev
 ```
 
-Build the static site for production into `.typress/`:
+Build the static site for production into `dist/`:
 
 ```bash
 bun run build
@@ -85,8 +84,8 @@ Welcome to my website.
 - `charset`: Character encoding (default: `"UTF-8"`).
 - `robots`: Search engine indexing directive.
 - `generator`: Site generator name.
-- `theme-color`: Theme color for browser headers.
-- `color-scheme`: Light/dark color scheme support.
+- `theme-color`: Theme colour for browser headers.
+- `color-scheme`: Light/dark colour scheme support.
 - `referrer`: Referrer policy directive.
 
 ```typst
@@ -244,7 +243,7 @@ Welcome to my website.
 
 ## HTML Layouts
 
-Layouts are standard HTML files stored in `src/layouts/`. The compiled content from Typst is injected into the `<slot />` tag of the designated layout.
+Layouts are standard HTML files stored in `src/layouts/`. Compiled content from Typst is projected into W3C `<slot></slot>` elements in the designated layout.
 
 Example `src/layouts/default.html`:
 
@@ -266,13 +265,53 @@ Example `src/layouts/default.html`:
           <a href="/blog/building-typst-ssg">Blog</a>
         </nav>
       </header>
-      <main>
-        <slot />
+      <main id="main-content" tabindex="-1">
+        <slot></slot>
       </main>
     </div>
-    <script type="module">import('/src/main.ts');</script>
+    <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
+```
+
+### Named Slots & Fallbacks
+
+Following the W3C `<slot>` specification and Svelte's fragment convention, layouts can define multiple named slots (`<slot name="..."></slot>`) alongside the default `<slot></slot>`. Content placed inside a `<slot>` element in the layout serves as fallback content when a page does not populate that slot:
+
+```html
+<div class="layout-grid">
+  <aside class="sidebar">
+    <slot name="sidebar">
+      <p>Default sidebar navigation</p>
+    </slot>
+  </aside>
+  <main id="main-content" tabindex="-1">
+    <slot></slot>
+  </main>
+</div>
+```
+
+In a Typst page, you can project content into a named slot either on a semantic HTML wrapper element using the W3C `slot` attribute, or without a wrapper element using `h("typress:fragment", slot: "...")` (or the `#fragment(slot: "...")` shorthand):
+
+```typst
+#import "/src/components/typress.typ": h, fragment, meta
+
+// Unwrapped fragment projected into <slot name="sidebar"></slot>
+#h("typress:fragment", slot: "sidebar")[
+  #outline(title: "On this page", depth: 2)
+]
+
+// Equivalent shorthand:
+// #fragment(slot: "sidebar")[#outline(title: "On this page", depth: 2)]
+
+// Semantic element with W3C slot attribute (preserves the <header> tag)
+#h("header.hero", slot: "hero")[
+  = Welcome
+]
+
+// Remaining content without a slot attribute goes into the default <slot></slot>
+= Main Document Content
+This paragraph is projected into the default slot.
 ```
 
 ## Web Components & Interactivity
@@ -295,21 +334,21 @@ Use the `component` macro from `src/components/typress.typ` to load and render T
 
 If you want to use Lit instead of vanilla Web Components:
 
-1. Install `lit`: `bun add lit`
-2. Add the `lit()` plugin in your `vite.config.ts`:
+- Install `lit`: `bun add lit`
+- Add the `lit()` plugin in your `vite.config.ts`:
 ```ts
 import { lit } from "./scripts/plugins/vite";
 // ...
 plugins: [..., lit()]
 ```
-3. Author Lit components and import them using the exact same `component()` macro:
+- Author Lit components and import them using the exact same `component()` macro:
 ```typst
 #let my-component = component("/src/components/my-component.ts", "my-component")
 ```
 
 ### Hyperscript Engine (`h`)
 
-The `h` macro provides a hyperscript selector API to output HTML elements directly when compiled with `--input is_html=true`.
+The `h` macro provides a hyperscript selector API to output HTML elements directly when `sys.inputs.is_html` is `"true"` (automatically passed by `NodeCompiler` during SSG builds).
 
 ```typst
 #import "/src/components/typress.typ": h
@@ -326,27 +365,29 @@ The `h` function supports standard CSS selector syntax:
 
 - `h("div.card")`: `<div class="card"></div>`
 - `h("button#submit.btn.primary")`: `<button id="submit" class="btn primary"></button>`
+- `h("typress:head")`: Injects child elements into the document `<head>`.
+- `h("typress:fragment", slot: "sidebar")`: Unwrapped fragment projected into `<slot name="sidebar"></slot>`.
 - Positional arguments become inner content; named arguments become HTML attributes.
 
 ## Architecture & SSG Engine
 
 ### Build Pipeline (`scripts/ssg.ts`)
 
-1. **File Discovery**: Discovers all `.typ` source files inside `src/pages/`.
-2. **Incremental Build Check**: Compares source modification timestamps (`mtimeMs`) against output files in `.typress/`.
-3. **Typst Compilation**: Runs `typst compile --root . --format html --features html --input is_html=true <src> <temp_out>` via Bun.
-4. **Layout Resolution**: Reads layout selection from page metadata.
-5. **Head Injection**: Extracts `<typress-head>` metadata from compiled HTML, merges or replaces default layout `<head>` tags, and updates `<html lang="...">`.
-6. **Slot Replacement**: Replaces `<slot />` in layout HTML with the compiled document body.
+- **File Discovery & Layout Preloading**: Discovers `.typ` source files inside `src/pages/` via native `fs.readdir` and preloads `.html` layout templates from `src/layouts/` concurrently (or fast-paths the single modified `.typ` file during Vite HMR).
+- **Incremental Build Check**: Compares source modification timestamps (`mtimeMs`) against output files in `.typress/` before instantiating the compiler.
+- **In-Process Typst Compilation**: Compiles `.typ` sources to HTML in memory using `@myriaddreamin/typst-ts-node-compiler` (`NodeCompiler`), keeping `comemo` AST, font, and grammar caches warm across pages and HMR updates.
+- **Layout Resolution**: Reads layout selection from compiled `typress:head` (`layout="..."`) metadata.
+- **Head Injection**: Extracts `typress:head` metadata from compiled HTML, merges or replaces default layout `<head>` tags (preserving repeatable `<meta>` tags such as `article:tag`), and updates `<html lang="...">`.
+- **Slot Resolution**: Projects named `slot="..."` elements and `typress:fragment` blocks into matching `<slot name="..."></slot>` targets (or renders their fallback content), normalises heading hierarchy (`<h1>` -> `<h2>`), deduplicates module scripts, marks active `aria-current="page"` links, and injects the remaining document body into the default `<slot></slot>`.
 
 ### Client Router & SPA Navigation
 
 The client router in `scripts/router/index.ts` enhances page navigation:
 
-- Intercepts internal link clicks for instant client-side page transitions.
-- Caches fetched DOM trees to minimize network requests.
-- Handles browser history state (`pushState`, `popstate`).
-- Re-executes page module scripts upon navigation.
+- Intercepts internal link clicks and prefetches links on hover/focus (respecting `Save-Data`).
+- Caches fetched DOM trees in an LRU cache (normalised without URL hashes) to minimise network requests.
+- Synchronises `<head>` metadata (`<title>`, `<meta>`, `<link rel="canonical">`), hoisted stylesheet/module assets, and active `aria-current="page"` navigation links.
+- Cancels superseded in-flight navigations via a monotonic sequence counter, announces route changes to assistive technologies (`#typress-announcer`), and re-executes page scripts on navigation.
 
 ### Serving Raw Typst Source
 
@@ -361,3 +402,4 @@ Vite plugins are located in the `scripts/plugins/vite/` directory and exported v
 - **`copyTypFiles`**: Production asset exporter for raw page source files.
 - **`generateSitemap`**: Automatically constructs a `sitemap.xml` listing all compiled pages.
 - **`lit`**: Optional plugin configuring esbuild decorator transforms dynamically, enabling optional Lit component support without global tsconfig pollution.
+

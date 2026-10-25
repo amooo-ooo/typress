@@ -1,16 +1,18 @@
-// Typress Hyperscript Component. Provides clean, composable DX for HTML elements.
+// Typress hyperscript and metadata module providing composable helpers for HTML elements.
 
+// Parses a CSS-like tag selector into tag name, element id, and class list.
 #let parse-selector(s) = {
   let (tag, id, classes) = ("div", none, ())
   for m in s.matches(regex("(^|#|\\.)([^#.\\[\\]]+)")) {
     let (prefix, name) = m.captures
-    if prefix == "" { tag = name }
+    if prefix == "" { tag = name.replace("typress:", "typress-") }
     else if prefix == "." { classes.push(name) }
     else if prefix == "#" { id = name }
   }
   (tag, id, classes)
 }
 
+// Emits a semantic HTML element when compiled for HTML output, falling back to content in PDF/editor preview.
 #let h(selector, ..args) = {
   let (tag, id, classes) = parse-selector(selector)
   let attrs = if id != none { (id: id) } else { (:) }
@@ -22,7 +24,7 @@
       if v { attrs.insert(k, "") }
     } else if type(v) == array {
       attrs.insert(k, v.map(str).join(" "))
-    } else {
+    } else if v != none {
       attrs.insert(k, str(v))
     }
   }
@@ -33,18 +35,25 @@
   if sys.inputs.at("is_html", default: "false") == "true" {
     html.elem(tag, attrs: attrs)[#content]
   } else {
-    // Editor fallback to keep content visible.
+    // Editor fallback to keep content visible outside HTML mode.
     content
   }
 }
 
+// Emits an unwrapped fragment container for projecting content into named layout slots.
+#let fragment(..args) = {
+  h("typress:fragment", ..args)
+}
+
+// Registers a custom web component and renders its custom element tag.
 #let component(ts-path, element-name) = {
   (..args) => {
-    h("script", type: "module", "import('" + ts-path + "');")
+    h("script", type: "module", src: str(ts-path))[]
     h(element-name, ..args.named())[#args.pos().join()]
   }
 }
 
+// Creates a single HTML meta tag node when content is provided.
 #let create-meta-tag(attr-name, attr-val, content-val) = {
   if content-val != none {
     let formatted = if type(content-val) == array { content-val.map(str).join(", ") } else { str(content-val) }
@@ -57,15 +66,14 @@
   }
 }
 
-// Coerces a value into an array. Arrays pass through, non-none scalars
-// become single-element arrays, and none becomes empty.
+// Normalises a value into an array. Arrays pass through, scalars become single-element arrays, and none becomes empty.
 #let coerce-list(val) = {
   if type(val) == array { val }
   else if val != none { (val,) }
   else { () }
 }
 
-// Builds standard <meta name="..."> tags plus charset.
+// Builds standard HTML meta name tags plus charset declaration.
 #let build-standard-meta(description, keywords, author, viewport, robots, generator, theme-color, color-scheme, referrer, charset) = {
   let nodes = ()
   nodes += create-meta-tag("name", "description", description)
@@ -83,8 +91,7 @@
   nodes
 }
 
-// Builds Open Graph metadata. Returns a dictionary with `nodes` and the
-// effective values (eff-title, eff-desc, eff-image) for twitter fallback.
+// Builds Open Graph metadata nodes and returns effective fallback values for Twitter cards.
 #let build-og-meta(og-title, og-description, og-type, og-url, og-image, og-image-alt, og-site-name, og-locale, og, title, description, canonical, published-time) = {
   let eff-title = if og-title != none { og-title } else { title }
   let eff-desc = if og-description != none { og-description } else { description }
@@ -110,7 +117,7 @@
   (nodes: nodes, eff-title: eff-title, eff-desc: eff-desc, eff-image: eff-image)
 }
 
-// Builds Twitter Cards metadata, cascading from OG effective values.
+// Builds Twitter Cards metadata cascading from Open Graph effective values.
 #let build-twitter-meta(twitter-card, twitter-site, twitter-creator, twitter-title, twitter-description, twitter-image, twitter-image-alt, twitter, og-image-alt, og-eff-title, og-eff-desc, og-eff-image) = {
   let eff-card = if twitter-card != none { twitter-card } else if og-eff-image != none { "summary_large_image" } else { "summary" }
   let eff-title = if twitter-title != none { twitter-title } else { og-eff-title }
@@ -135,7 +142,7 @@
   nodes
 }
 
-// Builds article metadata (published_time, modified_time, section, tags).
+// Builds article metadata tags (published_time, modified_time, section, tags).
 #let build-article-meta(published-time, modified-time, section, tags) = {
   let nodes = ()
   nodes += create-meta-tag("property", "article:published_time", published-time)
@@ -149,7 +156,7 @@
   nodes
 }
 
-// Builds link elements for canonical, icons, manifest, and alternates.
+// Builds link elements for canonical URLs, icons, web manifests, and alternates.
 #let build-link-nodes(canonical, icon, favicon, apple-touch-icon, manifest, alternate) = {
   let nodes = ()
 
@@ -179,7 +186,7 @@
   nodes
 }
 
-// Builds user-provided custom meta, link, script elements, JSON-LD, and raw head content.
+// Builds user-provided custom meta, link, script elements, JSON-LD, and raw head nodes.
 #let build-custom-nodes(meta, links, scripts, json-ld, head) = {
   let nodes = ()
 
@@ -215,6 +222,7 @@
   nodes
 }
 
+// Declarative document metadata macro emitting a typress-head container for SSG extraction.
 #let meta(
   title: none,
   layout: "default",
@@ -285,7 +293,7 @@
   if lang != none { head-attrs.insert("lang", lang) }
 
   if head-nodes.len() > 0 or head-attrs.len() > 0 {
-    h("typress-head", ..head-attrs, ..head-nodes)
+    h("typress:head", ..head-attrs, ..head-nodes)
   }
 
   body

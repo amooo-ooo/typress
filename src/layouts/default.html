@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="A minimal Typst-powered static site generator starter template.">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' https: data:; connect-src 'self';">
     <meta name="referrer" content="strict-origin-when-cross-origin">
     <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), interest-cohort=()">
     <title>Minimal Typress</title>
@@ -16,18 +16,19 @@
   </head>
   <body>
     <div id="app">
+      <a href="#main-content" class="skip-link">Skip to main content</a>
       <header>
-        <nav class="navbar">
+        <nav class="navbar" aria-label="Primary">
           <a href="/">Home</a>
           <a href="/cheatsheet">Cheatsheet</a>
           <a href="/blog/building-typst-ssg">Blog</a>
-          <a href="https://github.com/amooo-ooo/typress" target="_blank" rel="noopener noreferrer">GitHub</a>
+          <a href="https://github.com/amooo-ooo/typress" target="_blank" rel="noopener noreferrer">GitHub<span class="sr-only"> (opens in new tab)</span></a>
         </nav>
       </header>
-      <main>
-        <slot />
+      <main id="main-content" tabindex="-1">
+        <slot></slot>
       </main>
     </div>
-    <script type="module">import('/src/main.ts');</script>
+    <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

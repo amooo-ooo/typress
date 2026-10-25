@@ -1,11 +1,7 @@
 import { createRouter } from "../scripts/router/index";
 
 /**
- * Initialise the modular router.
+ * Initialises and mounts the client-side SPA router.
  */
 const router = createRouter({ container: "#app" });
-
-/**
- * Mount the router to take control of the document.
- */
 router.mount();

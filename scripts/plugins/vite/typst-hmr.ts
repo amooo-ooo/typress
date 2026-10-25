@@ -2,30 +2,46 @@ import { resolve } from "node:path";
 import { exec } from "node:child_process";
 import { promisify } from "node:util";
 import type { Plugin } from "vite";
+import { buildSSG } from "../../ssg";
 
 const execAsync = promisify(exec);
 
+/** Regular expression matching structured data files referenced by Typst documents. */
+const DATA_FILE_REGEX = /\.(?:json|bib|csv|toml|ya?ml|xml)$/i;
+
+/**
+ * Configuration options for the `typstHmr` Vite plugin.
+ */
 export interface TypstHmrOptions {
-  /** Command to run the SSG build script. */
-  buildCommand?: string;
-  /** Directory to watch for source changes. */
-  watchDir?: string;
+  /** Optional custom shell command to execute the SSG build script. */
+  readonly buildCommand?: string;
+  /** Directory to watch for source changes. Defaults to `src`. */
+  readonly watchDir?: string;
 }
 
 /**
- * Compiles Typst source files via the SSG script on build start,
- * and triggers a full page reload on .typ or layout changes during dev.
+ * Compiles Typst source files on build start and serialises HMR rebuilds on source changes.
+ *
+ * @param options Optional HMR plugin configuration.
+ * @returns Configured Vite plugin instance.
  */
 export function typstHmr(options: TypstHmrOptions = {}): Plugin {
-  const command = options.buildCommand ?? "bun scripts/ssg.ts";
+  const customCommand = options.buildCommand;
   const watchDir = options.watchDir ?? resolve(process.cwd(), "src");
   const prefix = "\x1b[35mtypress\x1b[0m";
 
-  async function runSSG(file?: string) {
-    if (file) console.log(`${prefix} hmr update ${file}`);
+  let activeBuild: Promise<void> | null = null;
+  let pendingRebuild = false;
+  let pendingTargetFile: string | undefined;
+
+  async function executeBuild(targetFile?: string): Promise<void> {
+    if (!customCommand) {
+      await buildSSG(targetFile);
+      return;
+    }
 
     try {
-      const { stdout, stderr } = await execAsync(command);
+      const { stdout, stderr } = await execAsync(customCommand);
       if (stdout) console.log(stdout.trim());
       if (stderr) console.error(stderr.trim());
     } catch (e: unknown) {
@@ -35,10 +51,48 @@ export function typstHmr(options: TypstHmrOptions = {}): Plugin {
     }
   }
 
+  // Coalesce concurrent HMR triggers so multiple rapid file saves never race on the filesystem.
+  async function runSSG(file?: string): Promise<void> {
+    if (file) console.log(`${prefix} hmr update ${file}`);
+
+    if (activeBuild) {
+      pendingRebuild = true;
+      pendingTargetFile =
+        pendingTargetFile === file ? file : undefined;
+      await activeBuild;
+      return;
+    }
+
+    pendingTargetFile = file;
+    activeBuild = (async () => {
+      do {
+        const target = pendingTargetFile;
+        pendingRebuild = false;
+        pendingTargetFile = undefined;
+        await executeBuild(target);
+      } while (pendingRebuild);
+    })();
+
+    try {
+      await activeBuild;
+    } finally {
+      activeBuild = null;
+    }
+  }
+
   function isTypstSource(file: string): boolean {
-    if (file.endsWith(".typ")) return true;
-    if (!file.endsWith(".html")) return false;
-    return file.includes("src/layouts") || file.includes("src\\layouts");
+    const normalised = file.replace(/\\/g, "/");
+    if (normalised.endsWith(".typ")) return true;
+    if (normalised.endsWith(".html") && normalised.includes("src/layouts/")) {
+      return true;
+    }
+    if (
+      DATA_FILE_REGEX.test(normalised) &&
+      (normalised.includes("src/assets/") || normalised.includes("src/data/"))
+    ) {
+      return true;
+    }
+    return false;
   }
 
   return {
@@ -54,9 +108,8 @@ export function typstHmr(options: TypstHmrOptions = {}): Plugin {
     },
 
     async handleHotUpdate({ file, server }) {
-      // Ignore changes inside the intermediate .typress cache.
       if (file.includes(".typress")) return [];
-      if (!isTypstSource(file)) return;
+      if (!isTypstSource(file)) return [];
 
       await runSSG(file);
       server.ws.send({ type: "custom", event: "typress:hmr" });

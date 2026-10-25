@@ -10,17 +10,32 @@ typress is a minimal static site generator template that combines Typst for docu
 - **Bun & Vite Tooling**: Use Bun for SSG builds and Vite for dev server HMR for `.typ` files.
 - **Web Components**: Inject TypeScript Web Components into Typst files.
 - **SPA Router**: Client-side router that caches DOM trees for navigation without full page reloads.
-- **HTML Layouts**: Render compiled Typst output into HTML shell files via `<slot />`.
+- **HTML Layouts**: Render compiled Typst output into HTML shell files via `<slot></slot>`.
 - **Raw Source Access**: Direct `.typ` file URLs serve the raw source code as plain text.
 - **Perfect Lighthouse Score**: 100 across all Lighthouse metrics.
 
 See [DOCS.md](DOCS.md) for full documentation and code examples.
 
+## Benchmarks
+
+| Metric | Typress | Astro 5 (`ClientRouter`) |
+| :--- | :--- | :--- |
+| Dependencies (`node_modules`) | 45 | 281 |
+| HMR rebuild (1 page) | 7 ms | 65 ms |
+| Warm SSG cache check (3 pages) | 6 ms | N/A |
+| Cold SSG compile (3 pages) | 192 ms | 447 ms |
+| Production build (3 pages) | 401 ms | 2,450 ms |
+| Client router (gzip) | 3.18 kB | 5.28 kB |
+| Stylesheet (gzip) | 2.02 kB | 2.02 kB |
+| `/` HTML (gzip) | 1.20 kB | 1.21 kB |
+| `/blog/building-typst-ssg` HTML (gzip) | 1.46 kB | 1.45 kB |
+| `/cheatsheet` HTML (gzip) | 5.92 kB | 5.82 kB |
+
 ## Architecture
 
 ### Pages & Layouts
 
-Pages in `src/pages/` are compiled into HTML and mapped to their corresponding URL paths. Typst HTML output goes into a `<slot />` within HTML shell files in `src/layouts/`. The layout is specified via the `meta` configuration macro, such as:
+Pages in `src/pages/` are compiled into HTML and mapped to their corresponding URL paths. Typst HTML output goes into `<slot></slot>` and named `<slot name="..."></slot>` elements within HTML shell files in `src/layouts/`. The layout is specified via the `meta` configuration macro, such as:
 
 ```typst
 #import "/src/components/typress.typ": meta
@@ -42,7 +57,7 @@ The `meta` macro provides flexible metadata and head management. It supports sta
 
 ### Static Site Generation
 
-The `scripts/ssg.ts` engine uses Bun to compile via `typst compile --format html`. The output goes to the `.typress/` cache directory.
+The `scripts/ssg.ts` engine compiles `.typ` files to HTML via `@myriaddreamin/typst-ts-node-compiler`. The output goes to the `.typress/` cache directory.
 
 ### Web Components
 
@@ -78,7 +93,7 @@ Vite serves from the `.typress` directory. A custom plugin handles clean URLs an
 
 ## Usage
 
-You need `bun` and `typst` installed and on your PATH.
+You need `bun` installed and on your PATH.
 
 Install dependencies:
 

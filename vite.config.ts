@@ -1,7 +1,7 @@
 import { defineConfig } from "vite";
-import { globSync } from "glob";
+import { readdirSync } from "node:fs";
 import { resolve } from "node:path";
-import critical from "rollup-plugin-critical";
+import { determineOutputPath } from "./scripts/ssg";
 import {
   typressRouter,
   typstHmr,
@@ -9,17 +9,29 @@ import {
   generateSitemap,
 } from "./scripts/plugins/vite";
 
+const PAGES_DIR = resolve(process.cwd(), "src/pages");
 const CACHE_DIR = resolve(process.cwd(), ".typress");
-const DIST_DIR = resolve(process.cwd(), "dist");
 const SITE_URL = "https://typress-ssg-starter.pages.dev";
 
-// Discover compiled HTML pages from the .typress build cache.
-// The cache persists between runs, typstHmr's buildStart hook keeps it fresh.
-const discoverPages = () =>
-  globSync("**/*.html", { cwd: CACHE_DIR, ignore: ["_temp/**"] });
+/**
+ * Discovers entry pages directly from `src/pages` so cold builds work before `.typress` exists.
+ *
+ * @returns Rollup input map of entry names to resolved `.typress` HTML paths.
+ */
+function discoverPageEntries(): Record<string, string> {
+  const entries = readdirSync(PAGES_DIR, { recursive: true }) as string[];
+  const typFiles = entries.filter((file) => file.endsWith(".typ")).sort();
+  return Object.fromEntries(
+    typFiles.map((file) => {
+      const outHtml = determineOutputPath(file).replace(/\\/g, "/");
+      const entryName = outHtml.replace(/\.html$/, "");
+      return [entryName, resolve(CACHE_DIR, outHtml)];
+    }),
+  );
+}
 
 export default defineConfig(({ command }) => {
-  const pages = command === "build" ? discoverPages() : [];
+  const pageEntries = command === "build" ? discoverPageEntries() : {};
 
   return {
     root: ".typress",
@@ -31,22 +43,6 @@ export default defineConfig(({ command }) => {
       typstHmr(),
       copyTypFiles(),
       generateSitemap({ siteUrl: SITE_URL }),
-      critical({
-        criticalUrl: `${DIST_DIR}/`,
-        criticalBase: `${DIST_DIR}/`,
-        criticalPages: pages.map((file) => ({
-          uri: file,
-          template: file.replace(/\.html$/, ""),
-        })),
-        criticalConfig: {
-          inline: true,
-          extract: false,
-          dimensions: [
-            { width: 375, height: 667 },
-            { width: 1366, height: 768 },
-          ],
-        },
-      }) as any,
     ],
 
     resolve: {
@@ -59,20 +55,19 @@ export default defineConfig(({ command }) => {
 
     server: {
       watch: {
-        ignored: (p) => p.includes(".typress") && !p.includes("node_modules"),
+        ignored: (p: string) =>
+          p.includes(".typress") && !p.includes("node_modules"),
       },
     },
 
     build: {
       outDir: "../dist",
       emptyOutDir: true,
+      modulePreload: {
+        polyfill: false,
+      },
       rollupOptions: {
-        input: Object.fromEntries(
-          pages.map((file) => [
-            file.replace(/\.html$/, ""),
-            resolve(CACHE_DIR, file),
-          ]),
-        ),
+        input: pageEntries,
       },
     },
   };
